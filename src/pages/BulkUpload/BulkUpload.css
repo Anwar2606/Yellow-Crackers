@@ -1,0 +1,91 @@
+.container {
+  max-width: 600px;
+  margin: 10px auto;
+  padding: 30px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.header {
+  text-align: center;
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #333;
+  margin: 0; /* Removes default spacing */
+}
+
+
+.file-drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  padding: 25px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  background-color: #fff;
+}
+
+.file-drop-zone.dragging {
+  background-color: #e8f0fe;
+  border-color: #007bff;
+}
+
+.file-name {
+  margin-top: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+.progress-bar {
+  width: 100%;
+  background-color: #e0e0e0;
+  border-radius: 8px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 18px;
+  background-color: #007bff;
+  border-radius: 8px;
+  width: 0;
+  transition: width 0.4s ease-in-out;
+}
+
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 18px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.btn:hover {
+  background-color: #45a049;
+  transform: scale(1.03);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.error-messages {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 5px;
+  color: #856404;
+}
+
+.error-messages h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
