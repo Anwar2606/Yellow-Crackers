@@ -1,34 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../firebase'; // Replace with your Firebase config file
-import { 
-  FaHome, FaInfoCircle, FaServicestack, FaEnvelope, 
-  FaArrowAltCircleRight, FaArrowCircleLeft, FaEye, 
-  FaEdit, FaFileInvoice, 
-  FaTruck
-} from "react-icons/fa";
-import { TbListNumbers } from "react-icons/tb";
-import Logo from "../assets/PCW.png";
-import { AiFillProduct } from "react-icons/ai";
-import { MdLogout } from "react-icons/md";
-import { Link } from 'react-router-dom';
-import { IoIosPerson } from 'react-icons/io';
+import { db } from '../firebase'; 
 import Sidebar from '../Sidebar/Sidebar';
 
 const InvoiceNumbersPage = () => {
   const [billingInvoices, setBillingInvoices] = useState([]);
   const [customerBillingInvoices, setCustomerBillingInvoices] = useState([]);
-   const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(true);
+
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const billingQuery = query(collection(db, 'billing'), orderBy('createdAt', 'desc'));
+        // Billing Collection
+        const billingQuery = query(
+          collection(db, 'invoicebilling'),
+          orderBy('createdAt', 'desc')
+        );
         const billingSnapshot = await getDocs(billingQuery);
-        const billingInvoices = billingSnapshot.docs.map(doc => doc.data().invoiceNumber);
+        const billingInvoices = billingSnapshot.docs.map(
+          (doc) => doc.data().invoiceNumber
+        );
 
-        const customerBillingQuery = query(collection(db, 'customerBilling'), orderBy('createdAt', 'desc'));
+        // Customer Billing Collection
+        const customerBillingQuery = query(
+          collection(db, 'waybilling'),
+          orderBy('createdAt', 'desc')
+        );
         const customerBillingSnapshot = await getDocs(customerBillingQuery);
-        const customerBillingInvoices = customerBillingSnapshot.docs.map(doc => doc.data().invoiceNumber);
+        const customerBillingInvoices = customerBillingSnapshot.docs.map(
+          (doc) => doc.data().invoiceNumber
+        );
 
         setBillingInvoices(billingInvoices);
         setCustomerBillingInvoices(customerBillingInvoices);
@@ -39,9 +40,11 @@ const InvoiceNumbersPage = () => {
 
     fetchInvoices();
   }, []);
+
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
-};
+  };
+
   const containerStyle = {
     padding: '20px',
     maxWidth: '800px',
@@ -86,13 +89,14 @@ const InvoiceNumbersPage = () => {
     <div className="main-container" style={{ display: 'flex' }}>
       {/* Sidebar */}
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-  
+
       {/* Main Content */}
       <div style={{ flex: 1, padding: '20px' }}>
         <div style={containerStyle}>
           <h1 style={headingStyle}>Invoice Numbers</h1>
-  
-          <h2 style={sectionHeadingStyle}>Billing Collection</h2>
+
+          {/* Billing Collection */}
+          <h2 style={sectionHeadingStyle}>Invoice bill</h2>
           {billingInvoices.length > 0 ? (
             <ul style={listStyle}>
               {billingInvoices.map((invoice, index) => (
@@ -104,8 +108,9 @@ const InvoiceNumbersPage = () => {
           ) : (
             <p style={noInvoicesStyle}>No invoices found in Billing collection.</p>
           )}
-  
-          <h2 style={sectionHeadingStyle}>Customer Billing Collection</h2>
+
+          {/* Customer Billing Collection */}
+          <h2 style={sectionHeadingStyle}>Way Bill</h2>
           {customerBillingInvoices.length > 0 ? (
             <ul style={listStyle}>
               {customerBillingInvoices.map((invoice, index) => (
@@ -115,15 +120,12 @@ const InvoiceNumbersPage = () => {
               ))}
             </ul>
           ) : (
-            <p style={noInvoicesStyle}>
-              No invoices found in Customer Billing collection.
-            </p>
+            <p style={noInvoicesStyle}>No invoices found in Customer Billing collection.</p>
           )}
         </div>
       </div>
     </div>
   );
-  
 };
 
 export default InvoiceNumbersPage;
