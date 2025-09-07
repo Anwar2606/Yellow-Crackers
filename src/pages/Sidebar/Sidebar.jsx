@@ -45,9 +45,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </ul>
         )} */}
 
-        <li onClick={() => setIsBillsOpen2(!isBillsOpen2)} className="submenu-toggle">
+        {/* <li onClick={() => setIsBillsOpen2(!isBillsOpen2)} className="submenu-toggle">
           <FaEdit /> {isOpen && <span>Edit Bills {isBillsOpen2 ? <FaChevronUp /> : <FaChevronDown />}</span>}
-        </li>
+        </li> */}
         {/* {isBillsOpen2 && isOpen && (
           <ul className="submenu">
              <li><Link to="/wholesaleeditbill"><GrDocumentPdf /> Wholesale Copy</Link></li>
