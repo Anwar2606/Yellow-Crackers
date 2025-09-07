@@ -27,24 +27,29 @@ const InvoiceEditBillPage = () => {
   const [updatedDetails, setUpdatedDetails] = useState({}); // Holds updated bill details
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls modal visibility
 
-  useEffect(() => {
-    const fetchBills = async () => {
-      try {
-        const billingSnapshot = await getDocs(collection(db, 'invoicebilling'));
-        const billingData = billingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        // const customerBillingSnapshot = await getDocs(collection(db, 'customerBilling'));
-        // const customerBillingData = customerBillingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        const allBills = [...billingData];
-        setBills(allBills);
-      } catch (error) {
-        console.error('Error fetching bills:', error);
-      }
-    };
-
-    fetchBills();
-  }, []);
+    useEffect(() => {
+      const fetchBills = async () => {
+        try {
+          // Fetch bills from 'billing' collection
+          const billingSnapshot = await getDocs(collection(db, 'billing'));
+          const billingData = billingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+          // Fetch bills from 'customerBilling' collection
+          const customerBillingSnapshot = await getDocs(collection(db, 'customerBilling'));
+          const customerBillingData = customerBillingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+          // Combine both collections
+          const allBills = [...billingData, ...customerBillingData];
+          
+          setBills(allBills);
+        } catch (error) {
+          console.error('Error fetching bills: ', error);
+        }
+      };
+  
+      fetchBills();
+    }, []);
+  
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
 };

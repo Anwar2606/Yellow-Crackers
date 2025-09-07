@@ -95,6 +95,7 @@ const isBillingPage = location.pathname === '/invoicebill' || location.pathname 
           <Route path="/" element={<LoginPage />} />
           <Route path="/pdf" element={<MergePDFs />} />
           <Route path="/showtransport" element={<ShowTransportDetails />} />
+           <Route path="/editbill" element={<EditBillPage/>} />
           <Route path="/invoiceeditbill" element={<InvoiceEditBillPage/>} />
           <Route path="/retaileditbill" element={<RetailEditBillPage/>} />
           <Route path="/waybilleditbill" element={<WayBillEditBillPage/>} />

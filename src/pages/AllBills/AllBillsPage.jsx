@@ -123,49 +123,57 @@ const formatDate = (createdAt) => {
     : 'Invalid Date';
 };  
 const generatePDF = async (detail, copyType, billType) => {
+   const { jsPDF } = require('jspdf');
+  const numberToWords = require('number-to-words');
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
   const borderMargin = 10;
 
   const drawPageBorder = () => {
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.2);
-    doc.rect(borderMargin, borderMargin, pageWidth - 2 * borderMargin, pageHeight - 2 * borderMargin);
+    doc.rect(borderMargin, borderMargin, pageWidth - 2 * borderMargin, doc.internal.pageSize.getHeight() - 2 * borderMargin);
   };
 
   const formattedDate = formatDate(detail.createdAt);
   const clean = (val) => (val === undefined ? '' : val);
+
   const {
     customerName,
     customerAddress,
+    customerEmail,
     customerState,
     customerPhoneNo,
     customerGSTIN,
-    customerPan
+    customerPan,
+    despatchedFrom,
+    despatchedTo,
+    transportName
   } = detail;
- 
-  let headerTableStartY = 12;
-let headerTableEndY = 0; // Will be set dynamically
-let estimateType = '';
-  if (billType === 'retail') estimateType = 'Estimate for Retail';
-  else if (billType === 'wholesale') estimateType = 'Estimate for Wholesale';
-  else if (billType === 'invoice') estimateType = 'Tax Invoice';
-  else if (billType === 'way') estimateType = 'Way Bill';
-  else estimateType = 'Estimate';
 
-doc.autoTable({
-  body: [
-    ['SRI DURGA CRACKERS', '', estimateType],
-    ['Address:1/90Z6, Balaji Nagar, Anna Colony', '', `Estimate Number: SDC-${detail.invoiceNumber}-25`],
-    ['Vadamamalapuram ', '', `Date:${formattedDate}`],
-    ['Thiruthangal - 626130', '', ''],
-    ['Sivakasi (Zone)', '', ''],
-    ['Virudhunagar (Dist)', '', ''],
+  const totalQuantity = detail.productsDetails.reduce((acc, item) => acc + (item.quantity || 0), 0);
+  const totalProducts = detail.productsDetails.length;
+
+  const copyTypes = ['Transport', 'Sales', 'Office', 'Customer'];
+
+  for (let i = 0; i < copyTypes.length; i++) {
+    const copyType = copyTypes[i];
+    if (i > 0) doc.addPage();
+
+    let headerTableStartY = 12;
+    let headerTableEndY = 0;
+
+    doc.autoTable({
+      body: [
+    ['GKM TRADERS', '', 'TAX INVOICE'],
+    ['Address:1/400 North Street M Duraisamypuram,', '',`${copyType.toUpperCase()} COPY` ],
+    ['Mamsapuram (po)', '',`Estimate Number: ${detail.invoiceNumber}` ],
+    ['Sivakasi (TK) ', '', `Date: ${formattedDate}`],
+    ['Virudhunagar - 626124', '', ''],
     ['State: 33-Tamil Nadu', '', ''],
-    ['Phone number: 97514 87277 / 95853 58106', '', '']
-  ],
-  startY: headerTableStartY,
+    ['Phone number: 8072973721', '', '']
+      ],
+       startY: headerTableStartY,
   theme: 'plain',
   styles: { fontSize: 9 },
   margin: { left: 14, right: 14 },
@@ -183,8 +191,8 @@ doc.autoTable({
   },
   didDrawPage: drawPageBorder,
   didDrawCell: function (data) {
-    // Set the bottom Y on last row and last column (index 2)
-    const lastRowIndex = 7; // total 8 rows, index starts from 0
+    // Set end Y on the last actual row
+    const lastRowIndex = 6; // your table has 7 rows, so last index is 6
     const lastColIndex = 2;
     if (data.row.index === lastRowIndex && data.column.index === lastColIndex) {
       headerTableEndY = data.cell.y + data.cell.height;
@@ -192,122 +200,167 @@ doc.autoTable({
   }
 });
 
-// ✅ Draw whole rectangle around the table
+// ✅ Draw rectangle around the whole table
 doc.setDrawColor(0);
 doc.setLineWidth(0.2);
 doc.rect(14, headerTableStartY, pageWidth - 28, headerTableEndY - headerTableStartY);
 
+     let startY = doc.autoTable.previous?.finalY + 5 || 70;
 
-  const customerAccountTable = [
-    ['TO', '', 'Account Details', ''],
-    ['Name', clean(customerName), 'A/c Holder Name', 'RAJESH KANNAN'],
-    ['Address', clean(customerAddress), 'A/c Number', '33098100000505'],
-    ['State', clean(customerState), 'Bank Name', 'BANK OF BARODA'],
-    ['Phone', clean(customerPhoneNo), 'Branch', 'SIVAKASI'],
-    ['GSTIN', clean(customerGSTIN), 'IFSC Code', 'BARB0SIVAKA'],
-    ['PAN', clean(customerPan), '', '']
-  ];
+// Row 1: Name, Address, State
+const row1 = [
+  customerName ? `Name: ${customerName}` : null,
+  customerAddress ? `Address: ${customerAddress}` : null,
+  customerState ? `State: ${customerState}` : null,
+].filter(Boolean).map(item => ({ content: item }));
 
-  doc.autoTable({
-    body: customerAccountTable,
-    startY: doc.autoTable.previous.finalY + 2,
-    theme: 'grid',
-    didDrawPage: drawPageBorder,
-    styles: { fontSize: 9, textColor: [0, 0, 0] },
-    columnStyles: {
-      0: { fontStyle: 'bold', cellWidth: 30 },
-      1: { cellWidth: 60 },
-      2: { fontStyle: 'bold', cellWidth: 35 },
-      3: { cellWidth: 55 }
+// Row 2: Phone, GSTIN, PAN
+const row2 = [
+  customerPhoneNo ? `Phone: ${customerPhoneNo}` : null,
+  customerGSTIN ? `GSTIN: ${customerGSTIN}` : null,
+  customerPan ? `PAN: ${customerPan}` : null,
+].filter(Boolean).map(item => ({ content: item }));
+
+// Combine into final table body
+const customerDetails = [];
+
+// ✅ Add 'TO' as the first row
+customerDetails.push([
+  { content: 'TO', styles: { textColor:"#d30466" ,fontStyle: 'bold', fontSize: 15 } },
+  { content: '' }, // 2nd column empty
+  { content: '' }  // 3rd column empty
+]);
+
+
+if (row1.length > 0) customerDetails.push(row1);
+if (row2.length > 0) customerDetails.push(row2);
+
+const customerStartY = startY;
+
+doc.autoTable({
+  body: customerDetails,
+  startY: customerStartY,
+  theme: 'plain',
+  styles: { fontSize: 8 },
+  margin: { left: 15, right: 15 },
+  didParseCell: function (data) {
+    if (data.row.index === 0) {
+      data.cell.styles.fontSize = 11;
     }
-  });
+  }
+});
 
-  const productTableBody = detail.productsDetails.map(item => [
-    item.name || 'N/A',
-    '36041000',
-    item.quantity?.toString() || '0',
-    `Rs.${item.saleprice?.toFixed(2) || '0.00'}`,
-    `Rs.${((item.quantity || 0) * (item.saleprice || 0)).toFixed(2)}`
-  ]);
+// Draw surrounding rectangle
+const customerEndY = doc.autoTable.previous.finalY;
+doc.setDrawColor(0);
+doc.setLineWidth(0.1);
+doc.rect(14, customerStartY - 2, 182, customerEndY - customerStartY + 2);
+
+// Step 1: Prepare product rows
+const productTableBody = detail.productsDetails.map((item, index) => [
+  index + 1,
+  item.name || 'N/A',
+  '36041000',
+  item.quantity?.toString() || '0',
+  `Rs.${item.saleprice?.toFixed(2) || '0.00'}`,
+  `Rs.${((item.quantity || 0) * (item.saleprice || 0)).toFixed(2)}`
+]);
 
 
+
+// Step 3: Add total summary rows
+productTableBody.push(
+  [{ content: 'Total Amount', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }, `Rs.${detail.totalAmount?.toFixed(2) || '0.00'}`],
+  [{ content: 'Discounted Amount', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }, `Rs.${detail.discountedTotal?.toFixed(2) || '0.00'}`],
+  [{ content: 'CGST (9%)', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }, `Rs.${detail.cgstAmount?.toFixed(2) || '0.00'}`],
+  [{ content: 'SGST (9%)', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }, `Rs.${detail.sgstAmount?.toFixed(2) || '0.00'}`],
+  [{ content: 'IGST (18%)', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }, `Rs.${detail.igstAmount?.toFixed(2) || '0.00'}`],
+  [{ content: 'Grand Total', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold', textColor: [0, 100, 0] } }, `Rs.${detail.grandTotal?.toFixed(2) || '0.00'}`]
+);
+
+// Step 4: Render single merged table
+doc.autoTable({
+  head: [['S.No', 'Product Name', 'HSN CODE', 'Quantity', 'Price', 'Total Amount']],
+  body: productTableBody,
+  startY: doc.autoTable.previous?.finalY + 2 || 70,
+  theme: 'grid',
+  didDrawPage: drawPageBorder,
+  headStyles: { fillColor: [255, 182, 193], textColor: [0, 0, 139], lineWidth: 0.2 },
+  alternateRowStyles: { fillColor: [245, 245, 245] },
+  styles: { fontSize: 10, lineColor: [0, 0, 0] },
+  columnStyles: {
+    0: { halign: 'center' },
+    1: { halign: 'left' },
+    2: { halign: 'center' },
+    3: { halign: 'right' },
+    4: { halign: 'right' },
+    5: { halign: 'right' }
+  }
+});
 
   doc.autoTable({
-    head: [['Product Name', 'HSN CODE', 'Quantity', 'Price', 'Total Amount']],
-    body: productTableBody,
-    startY: doc.autoTable.previous.finalY + 2,
-    theme: 'grid',
-    didDrawPage: drawPageBorder,
-    headStyles: { fillColor: [255, 182, 193], textColor: [0, 0, 139], lineWidth: 0.2 },
-    alternateRowStyles: { fillColor: [245, 245, 245] },
-    styles: { fontSize: 10 },
-    columnStyles: {
-      0: { halign: 'left' },
-      1: { halign: 'center' },
-      2: { halign: 'right' },
-      3: { halign: 'right' },
-      4: { halign: 'right' }
-    }
-  });
-
-  const totalAmount = `Rs.${detail.totalAmount?.toFixed(2) || '0.00'}`;
-  const discountedAmount = `Rs.${detail.discountedTotal?.toFixed(2) || '0.00'}`;
-  const grandTotal = `Rs.${detail.grandTotal?.toFixed(2) || '0.00'}`;
-
-  doc.autoTable({
-    body: [
-      ['Total Amount', totalAmount],
-      ['Discounted Amount', discountedAmount],
-      ['Grand Total', grandTotal]
+  body: [
+    [
+      { content: 'Total Products:', colSpan: 2, styles: { halign: 'left', fontStyle: 'bold' } },
+      { content: totalProducts.toString(), colSpan: 1, styles: { halign: 'right', fontStyle: 'bold' } },
+      { content: 'Total Quantity:', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
+      { content: totalQuantity.toString(), colSpan: 1, styles: { halign: 'right', fontStyle: 'bold' } }
     ],
-    startY: doc.autoTable.previous.finalY + 1,
-    theme: 'grid',
-    didDrawPage: drawPageBorder,
-    styles: { fontSize: 10 },
-    columnStyles: {
-      0: { halign: 'left', fontStyle: 'bold' },
-      1: { halign: 'right' }
-    }
-  });
+    [
+      { content: 'Despatched From:', colSpan: 3, styles: { halign: 'left', fontStyle: 'bold' } },
+      { content: despatchedFrom || 'N/A', colSpan: 3, styles: { halign: 'right' } }
+    ],
+    [
+      { content: 'Despatched To:', colSpan: 3, styles: { halign: 'left', fontStyle: 'bold' } },
+      { content: despatchedTo || 'N/A', colSpan: 3, styles: { halign: 'right' } }
+    ],
+    [
+      { content: 'Transport Name:', colSpan: 3, styles: { halign: 'left', fontStyle: 'bold' } },
+      { content: transportName || 'N/A', colSpan: 3, styles: { halign: 'right' } }
+    ]
+  ],
+  startY: doc.autoTable.previous.finalY + 2,
+  theme: 'grid',
+  styles: { fontSize: 10, lineColor: [0, 0, 0] },
+  margin: { left: 15, right: 15 }
+});
 
-  const numberToWords = require('number-to-words');
-  const totalInWords = numberToWords.toWords(detail.grandTotal || 0);
-  doc.autoTable({
-    body: [[`Rupees: ${totalInWords.toUpperCase()}`]],
-    startY: doc.autoTable.previous.finalY + 2,
-    theme: 'plain',
-    didDrawPage: drawPageBorder,
-    styles: { fontSize: 10, fontStyle: 'bold', textColor: [0, 0, 139] },
-    margin: { left: 15 }
-  });
 
-  const terms = [
-    ['Terms & Conditions'],
-    ['1. Goods once sold will not be taken back.'],
-    ['2. All matters subject to "Sivakasi" jurisdiction only.']
-  ];
-  doc.autoTable({
-    body: terms,
-    startY: doc.autoTable.previous.finalY + 2,
-    theme: 'plain',
-    didDrawPage: drawPageBorder,
-    styles: { fontSize: 9, fontStyle: 'normal', textColor: [0, 0, 0] },
-    margin: { left: 15 }
-  });
+    const totalInWords = numberToWords.toWords(detail.grandTotal || 0);
+    doc.autoTable({
+      body: [[`Rupees: ${totalInWords.toUpperCase()}`]],
+      startY: doc.autoTable.previous.finalY + 2,
+      theme: 'plain',
+      styles: { fontSize: 10, fontStyle: 'bold', textColor: [0, 0, 139] },
+      margin: { left: 15 }
+    });
 
-  doc.autoTable({
-    body: [['', '', 'Authorised Signature']],
-    startY: doc.autoTable.previous.finalY + 2,
-    theme: 'plain',
-    didDrawPage: drawPageBorder,
-    styles: { fontSize: 10, fontStyle: 'bold' },
-    columnStyles: {
-      2: { halign: 'right' }
-    },
-    margin: { left: 15, right: 15 }
-  });
+    const termsStartY = doc.autoTable.previous.finalY + 2;
+    doc.autoTable({
+      body: [
+        ['Terms & Conditions'],
+        ['1. Goods once sold will not be taken back.'],
+        ['2. All matters subject to "Sivakasi" jurisdiction only.']
+      ],
+      startY: termsStartY,
+      theme: 'plain',
+      styles: { fontSize: 9 },
+      margin: { left: 15 }
+    });
 
-  const fileName = `Invoice_${copyType.toLowerCase()}_copy.pdf`;
+    doc.autoTable({
+      body: [['', '', 'Authorised Signature']],
+      startY: doc.autoTable.previous.finalY + 2,
+      theme: 'plain',
+      styles: { fontSize: 10, fontStyle: 'bold' },
+      columnStyles: { 2: { halign: 'right' } },
+      margin: { left: 15, right: 15 }
+    });
+
+    doc.rect(15, termsStartY, pageWidth - 30, doc.autoTable.previous.finalY + 10 - termsStartY);
+  }
+
+  const fileName = `TAX INVOICE-${detail.invoiceNumber}.pdf`;
   doc.save(fileName);
 };
 
@@ -463,7 +516,7 @@ doc.rect(14, headerTableStartY, pageWidth - 28, headerTableEndY - headerTableSta
                     <td>
                       <FaDownload
                         className="download-icon"
-                        onClick={() => handleDownloadAllPdfs(bill)}
+                        onClick={() => generatePDF(bill)}
                       />
                       <FaTrash
                         className="delete-icon"

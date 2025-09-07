@@ -31,30 +31,31 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         <li><Link to="/newhome"><FaHome /> {isOpen && <span>Home</span>}</Link></li>
         <li><Link to="/products"><AiFillProduct /> {isOpen && <span>Products</span>}</Link></li>
-
-        <li onClick={() => setIsBillsOpen(!isBillsOpen)} className="submenu-toggle">
+           <li><Link to="/allbills"><FaEye /> {isOpen && <span>All Bills</span>}</Link></li>
+           <li><Link to="/editbill"><FaEdit /> {isOpen && <span>Edit Bills</span>}</Link></li>
+        {/* <li onClick={() => setIsBillsOpen(!isBillsOpen)} className="submenu-toggle">
           <FaEye /> {isOpen && <span>All Bills {isBillsOpen ? <FaChevronUp /> : <FaChevronDown />}</span>}
         </li>
         {isBillsOpen && isOpen && (
           <ul className="submenu">
-            {/* <li><Link to="/wholesalecopy"><GrDocumentPdf /> Whole Sale Copy</Link></li> */}
-            {/* <li><Link to="/retailcopy"><IoDocumentTextOutline /> Retail Copy</Link></li> */}
+           <li><Link to="/wholesalecopy"><GrDocumentPdf /> Whole Sale Copy</Link></li>
+           <li><Link to="/retailcopy"><IoDocumentTextOutline /> Retail Copy</Link></li> 
             <li><Link to="/invoicecopy"><HiOutlineDocumentText /> Invoice Copy</Link></li>
             <li><Link to="/waybillcopy"><HiOutlineDocumentCheck /> Way Bill Copy</Link></li>
           </ul>
-        )}
+        )} */}
 
         <li onClick={() => setIsBillsOpen2(!isBillsOpen2)} className="submenu-toggle">
           <FaEdit /> {isOpen && <span>Edit Bills {isBillsOpen2 ? <FaChevronUp /> : <FaChevronDown />}</span>}
         </li>
-        {isBillsOpen2 && isOpen && (
+        {/* {isBillsOpen2 && isOpen && (
           <ul className="submenu">
-            {/* <li><Link to="/wholesaleeditbill"><GrDocumentPdf /> Wholesale Copy</Link></li> */}
-            {/* <li><Link to="/retaileditbill"><IoDocumentTextOutline /> Retail Copy</Link></li> */}
+             <li><Link to="/wholesaleeditbill"><GrDocumentPdf /> Wholesale Copy</Link></li>
+             <li><Link to="/retaileditbill"><IoDocumentTextOutline /> Retail Copy</Link></li>
             <li><Link to="/invoiceeditbill"><HiOutlineDocumentText /> Invoice Copy</Link></li>
             <li><Link to="/waybilleditbill"><HiOutlineDocumentCheck /> Way Bill Copy</Link></li>
           </ul>
-        )}
+        )} */}
 
         {/* <li><Link to="/wholesalebill"><GrDocumentPdf />{isOpen && <span>Whole Sale Bill</span>}</Link></li> */}
         {/* <li><Link to="/retailcalculator"><IoDocumentTextOutline />{isOpen && <span>Retail Bill</span>}</Link></li> */}
