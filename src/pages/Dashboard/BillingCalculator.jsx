@@ -438,7 +438,7 @@ const row1 = [
 const row2 = [
   customerPhoneNo ? `Phone: ${customerPhoneNo}` : null,
   customerGSTIN ? `GSTIN: ${customerGSTIN}` : null,
-  customerPan ? `PAN: ${customerPan}` : null,
+  customerPan ? `Aadhar: ${customerPan}` : null,
 ].filter(Boolean).map(item => ({ content: item }));
 
 // Combine into final table body
@@ -781,7 +781,7 @@ const row1 = [
 const row2 = [
   customerPhoneNo ? `Phone: ${customerPhoneNo}` : null,
   customerGSTIN ? `GSTIN: ${customerGSTIN}` : null,
-  customerPan ? `PAN: ${customerPan}` : null,
+  customerPan ? `Aadhar: ${customerPan}` : null,
 ].filter(Boolean).map(item => ({ content: item }));
 
 // Combine into final table body
@@ -1322,7 +1322,7 @@ return (
    value={customerGSTIN}
    onChange={(e) => setCustomerGSTIN(e.target.value)}
  />
- <label>Customer PAN</label>
+ <label>Customer Aadhar</label>
  <input
    type="text"
    value={customerPan}
