@@ -439,6 +439,7 @@ const row2 = [
   customerPhoneNo ? `Phone: ${customerPhoneNo}` : null,
   customerGSTIN ? `GSTIN: ${customerGSTIN}` : null,
   customerPan ? `Aadhar: ${customerPan}` : null,
+  customerEmail ? `PAN: ${customerEmail}` : null,
 ].filter(Boolean).map(item => ({ content: item }));
 
 // Combine into final table body
@@ -1292,12 +1293,7 @@ return (
    value={customerName}
    onChange={(e) => setCustomerName(e.target.value)}
  />
- <label>Company Name</label>
- <input
-   type="email"
-   value={customerEmail}
-   onChange={(e) => setCustomerEmail(e.target.value)}
- />
+ 
  <label>Customer Address</label>
  <input
    type="text"
@@ -1328,7 +1324,12 @@ return (
    value={customerPan}
    onChange={(e) => setCustomerPAN(e.target.value)}
  />
- 
+ <label>Customer PAN</label>
+ <input
+   type="email"
+   value={customerEmail}
+   onChange={(e) => setCustomerEmail(e.target.value)}
+ />
   <label>Despatched From</label>
   <input
     type="text"

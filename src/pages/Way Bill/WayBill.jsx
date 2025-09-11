@@ -440,6 +440,7 @@ const row2 = [
   customerPhoneNo ? `Phone: ${customerPhoneNo}` : null,
   customerGSTIN ? `GSTIN: ${customerGSTIN}` : null,
   customerPan ? `Aadhar: ${customerPan}` : null,
+  customerEmail ? `PAN: ${customerEmail}` : null,
 ].filter(Boolean).map(item => ({ content: item }));
 
 // Combine into final table body
@@ -771,17 +772,36 @@ const CustomerCopy = async () => {
  doc.rect(rectX, rectY, rectWidth, rectHeight); // ⬅️ Rectangle around entire headerTable
  
  
-let startY = doc.autoTable.previous?.finalY + 5 || 70;
+ let startY = doc.autoTable.previous?.finalY + 5 || 70;
 
-const customerDetails = [
-  ['TO'],
-  [`Name: ${customerName}`],
-  [`Address: ${customerAddress}`],
-  [`State: ${customerState}`],
-  [`Phone: ${customerPhoneNo}`],
-  [`GSTIN: ${customerGSTIN}`],
-  [`Aadhar: ${customerPan}`]
-];
+// Row 1: Name, Address, State
+const row1 = [
+  customerName ? `Name: ${customerName}` : null,
+  customerAddress ? `Address: ${customerAddress}` : null,
+  customerState ? `State: ${customerState}` : null,
+].filter(Boolean).map(item => ({ content: item }));
+
+// Row 2: Phone, GSTIN, PAN
+const row2 = [
+  customerPhoneNo ? `Phone: ${customerPhoneNo}` : null,
+  customerGSTIN ? `GSTIN: ${customerGSTIN}` : null,
+  customerPan ? `Aadhar: ${customerPan}` : null,
+  customerEmail ? `PAN: ${customerEmail}` : null,
+].filter(Boolean).map(item => ({ content: item }));
+
+// Combine into final table body
+const customerDetails = [];
+
+// ✅ Add 'TO' as the first row
+customerDetails.push([
+  { content: 'TO', styles: { textColor:"#d30466" ,fontStyle: 'bold', fontSize: 15 } },
+  { content: '' }, // 2nd column empty
+  { content: '' }  // 3rd column empty
+]);
+
+
+if (row1.length > 0) customerDetails.push(row1);
+if (row2.length > 0) customerDetails.push(row2);
 
 const customerStartY = startY;
 
@@ -789,25 +809,21 @@ doc.autoTable({
   body: customerDetails,
   startY: customerStartY,
   theme: 'plain',
-  styles: { fontSize: 9 },
+  styles: { fontSize: 8 },
   margin: { left: 15, right: 15 },
-  columnStyles: {
-    0: { cellWidth: 180, fontStyle: 'bold' }
-  },
   didParseCell: function (data) {
     if (data.row.index === 0) {
-      data.cell.styles.textColor = [204, 0, 102]; // Pinkish red
       data.cell.styles.fontSize = 11;
-      data.cell.styles.fontStyle = 'bold';
     }
   }
 });
 
-// Draw surrounding rectangle like header style
+// Draw surrounding rectangle
 const customerEndY = doc.autoTable.previous.finalY;
 doc.setDrawColor(0);
 doc.setLineWidth(0.1);
 doc.rect(14, customerStartY - 2, 182, customerEndY - customerStartY + 4);
+
 
  
  
@@ -1294,12 +1310,7 @@ return (
    value={customerName}
    onChange={(e) => setCustomerName(e.target.value)}
  />
- <label>Compnay Name</label>
- <input
-   type="email"
-   value={customerEmail}
-   onChange={(e) => setCustomerEmail(e.target.value)}
- />
+ 
  <label>Customer Address</label>
  <input
    type="text"
@@ -1330,7 +1341,12 @@ return (
    value={customerPan}
    onChange={(e) => setCustomerPAN(e.target.value)}
  />
- 
+ <label>Customer PAN</label>
+ <input
+   type="email"
+   value={customerEmail}
+   onChange={(e) => setCustomerEmail(e.target.value)}
+ />
   <label>Despatched From</label>
   <input
     type="text"
